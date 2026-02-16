@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSW Maths Revision Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #0f1117;
+  --ink-mid:   #3d4452;
+  --ink-soft:  #7a8496;
+  --rule:      #e2e5ec;
+  --surface:   #f7f8fa;
+  --white:     #ffffff;
+  --blue:      #1d4ed8;
+  --blue-soft: #eff4ff;
+  --blue-mid:  #93b4f8;
+  --green:     #16a34a;
+  --green-soft:#f0fdf4;
+  --amber:     #d97706;
+  --amber-soft:#fffbeb;
+  --red:       #dc2626;
+  --red-soft:  #fef2f2;
+  --radius:    10px;
+  --shadow:    0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05);
+
+  --c-review: #1d4ed8;
+  --c-recall: #7c3aed;
+  --c-apply:  #b45309;
+  --c-answer: #16a34a;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--ink); min-height:100vh; font-size:15px; line-height:1.6; }
+
+/* ── Header ── */
+header {
+  background:var(--white); border-bottom:1px solid var(--rule);
+  padding:0 2rem; position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between; height:60px;
+}
+.logo { display:flex; align-items:center; gap:10px; font-weight:600; font-size:15px; color:var(--ink); }
+.logo-mark { width:32px; height:32px; background:var(--blue); border-radius:8px; display:grid; place-items:center; color:white; font-size:14px; font-weight:700; }
+.header-sub { font-size:12px; color:var(--ink-soft); font-weight:400; }
+.api-status { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft); }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--rule); }
+.dot.ok  { background:var(--green); }
+.dot.err { background:var(--red); }
+
+/* ── Layout ── */
+.app {
+  max-width:1160px; margin:0 auto;
+  padding:2rem 1.5rem 4rem;
+  display:grid; grid-template-columns:360px 1fr;
+  gap:1.5rem; align-items:start;
+}
+
+/* ── Cards ── */
+.card { background:var(--white); border:1px solid var(--rule); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+.card-head { padding:.875rem 1.25rem; border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:8px; }
+.card-head h2 { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+.card-body { padding:1.25rem; }
+
+/* ── Form controls ── */
+label { display:block; font-size:12px; font-weight:500; color:var(--ink-mid); margin-bottom:4px; }
+input[type=text],input[type=password],select,textarea {
+  width:100%; padding:8px 10px; border:1px solid var(--rule);
+  border-radius:7px; font-family:inherit; font-size:13px; color:var(--ink);
+  background:var(--white); transition:border-color .15s,box-shadow .15s; appearance:none;
+}
+input:focus,select:focus,textarea:focus {
+  outline:none; border-color:var(--blue-mid); box-shadow:0 0 0 3px rgba(29,78,216,.08);
+}
+textarea { resize:vertical; min-height:58px; }
+.form-row { margin-bottom:.875rem; }
+.form-row:last-child { margin-bottom:0; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+
+/* ── API key ── */
+.key-wrap { position:relative; display:flex; }
+.key-wrap input { padding-right:36px; font-family:'DM Mono',monospace; font-size:12px; }
+.key-toggle { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:14px; padding:2px; }
+
+/* ── Buttons ── */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 16px; border-radius:7px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+.btn-primary { background:var(--blue); color:white; }
+.btn-primary:hover { background:#1a44c2; transform:translateY(-1px); box-shadow:0 4px 12px rgba(29,78,216,.3); }
+.btn-primary:disabled { background:var(--ink-soft); cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-ghost { background:transparent; color:var(--ink-mid); border:1px solid var(--rule); }
+.btn-ghost:hover { background:var(--surface); border-color:var(--ink-soft); }
+.btn-success { background:var(--green); color:white; }
+.btn-success:hover { background:#15803d; }
+.btn-full { width:100%; }
+
+/* ── Checkbox pills ── */
+.check-group { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+.check-pill { display:flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid var(--rule); border-radius:20px; cursor:pointer; font-size:11px; font-weight:500; color:var(--ink-mid); transition:all .15s; user-select:none; }
+.check-pill input { display:none; }
+.check-pill:hover { border-color:var(--blue-mid); color:var(--blue); }
+.check-pill.active { background:var(--blue-soft); border-color:var(--blue); color:var(--blue); }
+
+/* ── Collapsible defaults ── */
+.defaults-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%; background:none; border:none; cursor:pointer;
+  font-family:inherit; font-size:11px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-soft); padding:0; margin-bottom:.75rem;
+  transition:color .15s;
+}
+.defaults-toggle:hover { color:var(--ink-mid); }
+.defaults-toggle-icon { font-size:10px; transition:transform .2s; }
+.defaults-toggle.open .defaults-toggle-icon { transform:rotate(180deg); }
+.defaults-body { display:none; }
+.defaults-body.open { display:block; }
+
+/* ── Preset row ── */
+.preset-row { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.preset-btn {
+  padding:4px 9px; border:1px solid var(--rule); border-radius:6px;
+  background:var(--white); font-family:'DM Mono',monospace;
+  font-size:10px; font-weight:500; color:var(--ink-soft);
+  cursor:pointer; transition:all .15s; white-space:nowrap;
+}
+.preset-btn:hover { border-color:var(--blue-mid); color:var(--blue); background:var(--blue-soft); }
+
+/* ── Add-slide buttons ── */
+.slide-add-row { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.slide-btn {
+  padding:5px 12px; border:1px dashed var(--rule); border-radius:6px;
+  background:var(--white); font-family:inherit; font-size:12px;
+  font-weight:500; color:var(--ink-soft); cursor:pointer; transition:all .15s;
+}
+.slide-btn:hover { border-style:solid; border-color:var(--blue-mid); color:var(--blue); background:var(--blue-soft); }
+
+/* ── Slide cards ── */
+.slide-sequence { display:flex; flex-direction:column; gap:0; }
+.seq-empty { font-size:12px; color:var(--ink-soft); font-style:italic; padding:10px 0 4px; text-align:center; }
+
+.slide-card {
+  display:grid;
+  grid-template-columns:28px 1fr auto;
+  gap:10px; align-items:start;
+  padding:8px 0;
+  border-bottom:1px solid var(--rule);
+  animation:fadeIn .15s ease;
+}
+.slide-card:last-child { border-bottom:none; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+.slide-card-left { display:flex; flex-direction:column; align-items:center; gap:6px; padding-top:2px; }
+.slide-num {
+  width:22px; height:22px; border-radius:6px;
+  display:grid; place-items:center;
+  font-size:10px; font-weight:700; color:white; flex-shrink:0;
+}
+.slide-card-middle { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.slide-type-label { font-size:12px; font-weight:700; font-family:'DM Mono',monospace; line-height:1.4; }
+
+/* Inline fields — hidden until slide has any value or user clicks title */
+.slide-fields { display:flex; flex-direction:column; gap:4px; }
+.slide-field-row { display:flex; gap:4px; }
+.slide-field-row select,
+.slide-field-row input[type=text] { font-size:11px; padding:4px 7px; }
+.slide-field-row select { flex:0 0 auto; }
+.slide-title-input {
+  font-size:11px; padding:4px 7px; border-radius:5px;
+  border:1px solid var(--rule); font-family:inherit; color:var(--ink);
+  background:var(--surface); width:100%; transition:border-color .15s;
+}
+.slide-title-input:focus { background:var(--white); border-color:var(--blue-mid); outline:none; box-shadow:0 0 0 3px rgba(29,78,216,.08); }
+.slide-instr-input {
+  font-size:11px; padding:4px 7px; border-radius:5px;
+  border:1px solid var(--rule); font-family:inherit; color:var(--ink);
+  background:var(--surface); width:100%; resize:vertical; min-height:36px;
+  transition:border-color .15s;
+}
+.slide-instr-input:focus { background:var(--white); border-color:var(--blue-mid); outline:none; box-shadow:0 0 0 3px rgba(29,78,216,.08); }
+
+.slide-card-actions { display:flex; flex-direction:column; gap:3px; padding-top:1px; }
+.sc-action {
+  background:none; border:none; cursor:pointer; font-size:13px;
+  padding:3px 4px; border-radius:4px; opacity:0.35;
+  transition:opacity .1s, background .1s; line-height:1;
+}
+.sc-action:hover { opacity:1; }
+.sc-action.dup:hover { background:var(--blue-soft); color:var(--blue); }
+.sc-action.del:hover { background:var(--red-soft); color:var(--red); }
+
+/* ── Queue panel ── */
+#queue-panel { grid-column:2; }
+.queue-toolbar {
+  padding:1rem 1.25rem; border-bottom:1px solid var(--rule);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+}
+.queue-count { font-size:12px; color:var(--ink-soft); font-weight:500; }
+.queue-actions { display:flex; gap:8px; }
+.queue-list { padding:0; }
+
+.queue-item {
+  display:grid; grid-template-columns:28px 1fr auto auto;
+  align-items:start; gap:10px;
+  padding:12px 1.25rem; border-bottom:1px solid var(--rule); transition:background .1s;
+}
+.queue-item:last-child { border-bottom:none; }
+.queue-item:hover { background:var(--surface); }
+
+.queue-num {
+  width:24px; height:24px; background:var(--surface); border:1px solid var(--rule);
+  border-radius:6px; display:grid; place-items:center;
+  font-size:11px; font-weight:600; color:var(--ink-soft); flex-shrink:0; margin-top:2px;
+}
+.queue-info { min-width:0; }
+.queue-focus { font-size:13px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.queue-meta { display:flex; gap:5px; margin-top:5px; flex-wrap:wrap; }
+.tag { font-size:10px; font-weight:500; padding:2px 7px; border-radius:4px; background:var(--surface); border:1px solid var(--rule); color:var(--ink-soft); white-space:nowrap; }
+.tag.blue  { background:var(--blue-soft); border-color:var(--blue-mid); color:var(--blue); }
+.tag.green { background:var(--green-soft); border-color:#86efac; color:var(--green); }
+.tag.amber { background:var(--amber-soft); border-color:#fcd34d; color:var(--amber); }
+
+/* Slide mini-tags in queue */
+.queue-slides { display:flex; gap:3px; margin-top:5px; flex-wrap:wrap; align-items:center; }
+.slide-mini {
+  font-size:9px; font-weight:700; font-family:'DM Mono',monospace;
+  padding:1px 5px; border-radius:3px; color:white; opacity:.85;
+}
+
+.queue-status { font-size:11px; font-weight:600; padding:3px 8px; border-radius:5px; white-space:nowrap; }
+.status-pending { background:var(--surface); color:var(--ink-soft); }
+.status-working { background:var(--amber-soft); color:var(--amber); }
+.status-done    { background:var(--green-soft); color:var(--green); }
+.status-error   { background:var(--red-soft); color:var(--red); }
+
+.queue-del { background:none; border:none; cursor:pointer; color:var(--rule); font-size:16px; line-height:1; padding:2px 4px; border-radius:4px; transition:color .1s; margin-top:2px; }
+.queue-del:hover { color:var(--red); background:var(--red-soft); }
+
+/* ── Empty state ── */
+.empty { padding:3rem 1.25rem; text-align:center; color:var(--ink-soft); }
+.empty-icon { font-size:2.5rem; margin-bottom:.75rem; }
+.empty p { font-size:13px; line-height:1.5; }
+
+/* ── Progress bar ── */
+.progress-bar { height:3px; background:var(--rule); border-radius:2px; overflow:hidden; margin:0 1.25rem 1rem; }
+.progress-fill { height:100%; background:var(--blue); border-radius:2px; transition:width .4s ease; width:0%; }
+
+/* ── Alerts ── */
+.alert { padding:10px 14px; border-radius:7px; font-size:12px; line-height:1.5; display:flex; gap:8px; margin-bottom:.75rem; }
+.alert-info  { background:var(--blue-soft);  color:#1e40af; border:1px solid var(--blue-mid); }
+.alert-warn  { background:var(--amber-soft); color:#92400e; border:1px solid #fcd34d; }
+.alert-ok    { background:var(--green-soft); color:#14532d; border:1px solid #86efac; }
+.alert-err   { background:var(--red-soft);   color:#991b1b; border:1px solid #fca5a5; }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+
+/* ── Responsive ── */
+@media (max-width:768px) {
+  .app { grid-template-columns:1fr; }
+  #queue-panel { grid-column:1; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">M</div>
+    <div>
+      <div>NSW Maths Generator</div>
+      <div class="header-sub">Revision Presentation Builder</div>
+    </div>
+  </div>
+  <div class="api-status">
+    <div class="dot" id="api-dot"></div>
+    <span id="api-label">No API key</span>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ── Left panel ── -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+    <!-- API Key -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11 1a4 4 0 0 1 0 8 4 4 0 0 1-3.76-2.62L6 8H4v2H2V8H1V6h5.24A4 4 0 0 1 11 1zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="currentColor"/></svg>
+        <h2>API Key</h2>
+      </div>
+      <div class="card-body" style="padding-bottom:1rem;">
+        <div class="key-wrap">
+          <input type="password" id="api-key" placeholder="sk-ant-api03-…" autocomplete="off">
+          <button class="key-toggle" onclick="toggleKey()" title="Show/hide">👁</button>
+        </div>
+        <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">
+          Get a key at <strong>console.anthropic.com</strong> — ~$0.05 per presentation.
+        </p>
+      </div>
+    </div>
+
+    <!-- New Presentation -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 14h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <h2>New Presentation</h2>
+      </div>
+      <div class="card-body">
+
+        <!-- Core fields: always visible -->
+        <div class="two-col" style="margin-bottom:.875rem;">
+          <div>
+            <label>Stage</label>
+            <select id="f-stage">
+              <option value="Stage 4">Stage 4 (Yrs 7–8)</option>
+              <option value="Stage 5">Stage 5 (Yrs 9–10)</option>
+            </select>
+          </div>
+          <div>
+            <label>Subtopic</label>
+            <input type="text" id="f-subtopic" placeholder="e.g. Integers">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Specific Focus <span style="color:var(--blue);font-size:11px;">(syllabus dot point)</span></label>
+          <textarea id="f-focus" rows="2" placeholder="e.g. Add and subtract positive and negative integers"></textarea>
+        </div>
+
+        <!-- Slide sequence builder -->
+        <div class="form-row" style="margin-bottom:.5rem;">
+          <label style="margin-bottom:6px;">Slide Sequence</label>
+
+          <!-- Presets -->
+          <div class="preset-row">
+            <button class="preset-btn" onclick="applyPreset(['Review','Recall','Answer'])">Review → Recall → Answer</button>
+            <button class="preset-btn" onclick="applyPreset(['Review','Apply','Answer'])">Review → Apply → Answer</button>
+            <button class="preset-btn" onclick="applyPreset(['Review','Recall','Apply','Answer'])">Review → Recall → Apply → Answer</button>
+          </div>
+
+          <!-- Add buttons -->
+          <div class="slide-add-row">
+            <button class="slide-btn" onclick="addSlide('Review')">+ Review</button>
+            <button class="slide-btn" onclick="addSlide('Recall')">+ Recall</button>
+            <button class="slide-btn" onclick="addSlide('Apply')">+ Apply</button>
+            <button class="slide-btn" onclick="addSlide('Answer')">+ Answer</button>
+          </div>
+
+          <!-- Slide cards -->
+          <div id="slide-sequence">
+            <div class="seq-empty">Choose a preset or add slides above</div>
+          </div>
+        </div>
+
+        <!-- Defaults (collapsed) -->
+        <div style="border-top:1px solid var(--rule);padding-top:.875rem;margin-top:.875rem;">
+          <button class="defaults-toggle" id="defaults-toggle" onclick="toggleDefaults()">
+            <span>Defaults for question slides</span>
+            <span class="defaults-toggle-icon">▾</span>
+          </button>
+          <div class="defaults-body" id="defaults-body">
+            <div class="two-col" style="margin-bottom:.75rem;">
+              <div>
+                <label># Questions</label>
+                <select id="f-numq">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label>Difficulty</label>
+                <select id="f-diff">
+                  <option value="below_stage">Below Stage</option>
+                  <option value="stage_level" selected>Stage Level</option>
+                  <option value="extension">Extension</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:.75rem;">
+              <label>Question Types</label>
+              <div class="check-group" id="qtype-group">
+                <label class="check-pill active"><input type="checkbox" value="multiple_choice" checked onchange="updatePill(this)"> Multiple Choice</label>
+                <label class="check-pill"><input type="checkbox" value="short_answer" onchange="updatePill(this)"> Short Answer</label>
+                <label class="check-pill"><input type="checkbox" value="fill_blank" onchange="updatePill(this)"> Fill Blank</label>
+                <label class="check-pill"><input type="checkbox" value="true_false" onchange="updatePill(this)"> True/False</label>
+              </div>
+            </div>
+            <div>
+              <label>Global Instructions <span style="font-weight:400;color:var(--ink-soft);">(optional)</span></label>
+              <input type="text" id="f-custom" placeholder="e.g. Use real-world temperature examples">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" style="margin-top:1rem;" onclick="addToQueue()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Add to Queue
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Right panel: queue ── -->
+  <div class="card" id="queue-panel">
+    <div class="queue-toolbar">
+      <div>
+        <div style="font-size:14px;font-weight:600;">Generation Queue</div>
+        <div class="queue-count" id="queue-count">0 presentations queued</div>
+      </div>
+      <div class="queue-actions">
+        <button class="btn btn-ghost" onclick="clearQueue()" id="btn-clear" style="display:none">Clear All</button>
+        <button class="btn btn-primary" onclick="runQueue()" id="btn-run" disabled>
+          <span id="run-label">Generate All</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-bar" id="progress-wrap" style="display:none">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <div id="alert-area" style="padding:0 1.25rem;"></div>
+
+    <div id="queue-list" class="queue-list">
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <p>Fill in the form and click<br><strong>Add to Queue</strong> to get started.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let queue      = [];
+let slideOrder = [];   // [{type, title, instructions, numQ, difficulty}]
+let running    = false;
+
+const COLORS = { Review:'#1d4ed8', Recall:'#7c3aed', Apply:'#b45309', Answer:'#16a34a' };
+const isQSlide = t => t === 'Recall' || t === 'Apply';
+
+// ── API key ──────────────────────────────────────────────────────────────────
+document.getElementById('api-key').addEventListener('input', updateApiStatus);
+function updateApiStatus() {
+  const key = document.getElementById('api-key').value.trim();
+  const dot = document.getElementById('api-dot');
+  const lbl = document.getElementById('api-label');
+  if (key.startsWith('sk-ant-') && key.length > 20) { dot.className='dot ok';  lbl.textContent='Key looks valid'; }
+  else if (key.length > 0)                           { dot.className='dot err'; lbl.textContent='Invalid format'; }
+  else                                               { dot.className='dot';     lbl.textContent='No API key'; }
+}
+function toggleKey() {
+  const i = document.getElementById('api-key');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+// ── Defaults toggle ──────────────────────────────────────────────────────────
+function toggleDefaults() {
+  document.getElementById('defaults-toggle').classList.toggle('open');
+  document.getElementById('defaults-body').classList.toggle('open');
+}
+
+// ── Checkbox pills ───────────────────────────────────────────────────────────
+function updatePill(cb) { cb.closest('.check-pill').classList.toggle('active', cb.checked); }
+
+// ── Preset ───────────────────────────────────────────────────────────────────
+function applyPreset(types) {
+  const diff = document.getElementById('f-diff').value;
+  const numq = parseInt(document.getElementById('f-numq').value) || 3;
+  slideOrder = types.map(type => ({ type, title:'', instructions:'', numQ:numq, difficulty:diff }));
+  renderSlideSequence();
+}
+
+// ── Add / duplicate / remove slide ──────────────────────────────────────────
+function addSlide(type) {
+  const diff = document.getElementById('f-diff').value;
+  const numq = parseInt(document.getElementById('f-numq').value) || 3;
+  slideOrder.push({ type, title:'', instructions:'', numQ:numq, difficulty:diff });
+  renderSlideSequence();
+}
+
+function dupSlide(idx) {
+  slideOrder.splice(idx + 1, 0, { ...slideOrder[idx] });
+  renderSlideSequence();
+}
+
+function removeSlide(idx) {
+  slideOrder.splice(idx, 1);
+  renderSlideSequence();
+}
+
+// ── Live-save field changes ──────────────────────────────────────────────────
+function saveField(idx, field, value) {
+  if (!slideOrder[idx]) return;
+  slideOrder[idx][field] = field === 'numQ' ? parseInt(value) || 3 : value;
+  // Re-render only the label so we don't lose focus
+  const lbl = document.getElementById(`lbl-${idx}`);
+  if (lbl) {
+    const s = slideOrder[idx];
+    lbl.textContent = s.type + (s.title ? ` — ${s.title}` : '');
+  }
+}
+
+// ── Render slide sequence ─────────────────────────────────────────────────────
+function renderSlideSequence() {
+  const container = document.getElementById('slide-sequence');
+  if (slideOrder.length === 0) {
+    container.innerHTML = '<div class="seq-empty">Choose a preset or add slides above</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="slide-sequence">' +
+    slideOrder.map((slide, i) => {
+      const col = COLORS[slide.type] || '#1d4ed8';
+      const label = slide.type + (slide.title ? ` — ${slide.title}` : '');
+
+      const qControls = isQSlide(slide.type) ? `
+        <div class="slide-field-row">
+          <select style="width:60px;" onchange="saveField(${i},'numQ',this.value)">
+            ${[1,2,3,4,5].map(n=>`<option value="${n}"${slide.numQ==n?' selected':''}>${n}Q</option>`).join('')}
+          </select>
+          <select style="flex:1;" onchange="saveField(${i},'difficulty',this.value)">
+            <option value="below_stage"${slide.difficulty==='below_stage'?' selected':''}>Below Stage</option>
+            <option value="stage_level"${slide.difficulty==='stage_level'?' selected':''}>Stage Level</option>
+            <option value="extension"${slide.difficulty==='extension'?' selected':''}>Extension</option>
+          </select>
+        </div>` : '';
+
+      return `
+      <div class="slide-card">
+        <div class="slide-card-left">
+          <div class="slide-num" style="background:${col};">${i+1}</div>
+        </div>
+        <div class="slide-card-middle">
+          <div class="slide-type-label" id="lbl-${i}" style="color:${col};">${label}</div>
+          <div class="slide-fields">
+            <input class="slide-title-input" type="text" placeholder="Custom title (optional)"
+              value="${slide.title.replace(/"/g,'&quot;')}"
+              oninput="saveField(${i},'title',this.value)">
+            ${qControls}
+            <textarea class="slide-instr-input" rows="1"
+              placeholder="Slide instructions (optional)"
+              oninput="saveField(${i},'instructions',this.value)">${slide.instructions}</textarea>
+          </div>
+        </div>
+        <div class="slide-card-actions">
+          <button class="sc-action dup" onclick="dupSlide(${i})" title="Duplicate">⧉</button>
+          <button class="sc-action del" onclick="removeSlide(${i})" title="Remove">×</button>
+        </div>
+      </div>`;
+    }).join('') +
+  '</div>';
+}
+
+// ── Add to queue ─────────────────────────────────────────────────────────────
+function addToQueue() {
+  const focus = document.getElementById('f-focus').value.trim();
+  if (!focus)              { showAlert('Please enter a Specific Focus.', 'warn'); return; }
+  if (!slideOrder.length)  { showAlert('Please add at least one slide.', 'warn'); return; }
+  const qtypes = [...document.querySelectorAll('#qtype-group input:checked')].map(c => c.value);
+  if (!qtypes.length)      { showAlert('Please select at least one question type.', 'warn'); return; }
+
+  const item = {
+    id:         Date.now(),
+    stage:      document.getElementById('f-stage').value,
+    subtopic:   document.getElementById('f-subtopic').value.trim(),
+    focus,
+    slides:     slideOrder.map(s => ({ ...s })),
+    numQ:       parseInt(document.getElementById('f-numq').value),
+    qTypes:     qtypes,
+    difficulty: document.getElementById('f-diff').value,
+    custom:     document.getElementById('f-custom').value.trim(),
+    seqOrder:   queue.length + 1,
+    status:     'pending',
+    pptxBlob:   null
+  };
+
+  queue.push(item);
+  slideOrder = [];
+  renderSlideSequence();
+  renderQueue();
+  clearAlert();
+
+  // Reset focus field for next entry, keep stage/subtopic
+  document.getElementById('f-focus').value = '';
+}
+
+// ── Remove / clear queue ─────────────────────────────────────────────────────
+function removeItem(id) { queue = queue.filter(i => i.id !== id); renderQueue(); }
+function clearQueue()   { if (!running) { queue = []; renderQueue(); } }
+
+// ── Render queue ─────────────────────────────────────────────────────────────
+function renderQueue() {
+  const list     = document.getElementById('queue-list');
+  const count    = document.getElementById('queue-count');
+  const btnRun   = document.getElementById('btn-run');
+  const btnClear = document.getElementById('btn-clear');
+
+  count.textContent = `${queue.length} presentation${queue.length !== 1 ? 's' : ''} queued`;
+  btnRun.disabled = queue.length === 0 || running;
+  btnClear.style.display = queue.length > 0 ? 'inline-flex' : 'none';
+
+  if (queue.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Fill in the form and click<br><strong>Add to Queue</strong> to get started.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = queue.map(item => {
+    const scls = { pending:'status-pending', working:'status-working', done:'status-done', error:'status-error' };
+    const slbl = { pending:'Pending', working:'⏳ Working…', done:'✓ Done', error:'✗ Error' };
+    const diffShort = { below_stage:'Below', stage_level:'Stage', extension:'Ext.' };
+    const slideMinis = item.slides.map(s =>
+      `<span class="slide-mini" style="background:${COLORS[s.type]||'#888'}">${s.type[0]}</span>`
+    ).join('');
+
+    return `
+    <div class="queue-item" id="item-${item.id}">
+      <div class="queue-num">${item.seqOrder}</div>
+      <div class="queue-info">
+        <div class="queue-focus" title="${item.focus}">${item.focus}</div>
+        <div class="queue-meta">
+          <span class="tag blue">${item.stage}</span>
+          ${item.subtopic ? `<span class="tag">${item.subtopic}</span>` : ''}
+          <span class="tag">${item.numQ}Q</span>
+          <span class="tag ${item.difficulty==='extension'?'amber':''}">${diffShort[item.difficulty]||item.difficulty}</span>
+        </div>
+        <div class="queue-slides">${slideMinis}</div>
+        ${item.status === 'done' && item.pptxBlob ? `
+          <button class="btn btn-success" style="margin-top:6px;padding:4px 10px;font-size:11px;" onclick="downloadItem(${item.id})">
+            ⬇ Download .pptx
+          </button>` : ''}
+      </div>
+      <div class="queue-status ${scls[item.status]}">${slbl[item.status]}</div>
+      <button class="queue-del" onclick="removeItem(${item.id})" title="Remove" ${item.status==='working'?'disabled':''}>×</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Download ─────────────────────────────────────────────────────────────────
+function downloadItem(id) {
+  const item = queue.find(i => i.id === id);
+  if (!item?.pptxBlob) return;
+  const safe = (item.subtopic || 'Maths').replace(/[^a-z0-9]/gi, '_');
+  const name = `NSW_Maths_${String(item.seqOrder).padStart(2,'0')}_${item.stage.replace(' ','')}_${safe}.pptx`;
+  const url  = URL.createObjectURL(item.pptxBlob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Run queue ─────────────────────────────────────────────────────────────────
+async function runQueue() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey.startsWith('sk-ant-')) { showAlert('Please enter a valid Anthropic API key first.', 'warn'); return; }
+  if (!queue.length) return;
+
+  running = true;
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-run').innerHTML = '<div class="spinner"></div> Generating…';
+  document.getElementById('btn-clear').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'block';
+  clearAlert();
+
+  const pending = queue.filter(i => i.status === 'pending');
+  let done = 0;
+
+  for (const item of pending) {
+    item.status = 'working'; renderQueue(); updateProgress(done, pending.length);
+    try {
+      item.pptxBlob = await generatePresentation(item, apiKey);
+      item.status = 'done';
+      downloadItem(item.id);
+    } catch (err) {
+      item.status = 'error';
+      console.error(err);
+    }
+    done++; updateProgress(done, pending.length); renderQueue();
+    await sleep(1200);
+  }
+
+  running = false;
+  document.getElementById('btn-run').innerHTML = 'Generate All';
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('btn-clear').style.display = 'inline-flex';
+
+  const succeeded = queue.filter(i => i.status === 'done').length;
+  const failed    = queue.filter(i => i.status === 'error').length;
+  if (failed)  showAlert(`${succeeded} generated, ${failed} failed — check your API key and retry.`, 'warn');
+  else         showAlert(`All ${succeeded} presentation${succeeded!==1?'s':''} downloaded successfully!`, 'ok');
+}
+
+function updateProgress(done, total) {
+  document.getElementById('progress-fill').style.width = `${total ? (done/total)*100 : 0}%`;
+}
+
+// ── Claude API ────────────────────────────────────────────────────────────────
+async function callClaude(prompt, apiKey, maxTokens=1200) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens, messages:[{role:'user',content:prompt}] })
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`API ${res.status}: ${t.substring(0,200)}`); }
+  return (await res.json()).content[0].text;
+}
+
+function parseJSON(text) {
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('No JSON in response');
+  return JSON.parse(m[0]);
+}
+
+async function generateReview(item, slide, apiKey) {
+  const instr = [item.custom, slide.instructions].filter(Boolean).join('\n');
+  const prompt = `You are a NSW mathematics teacher. Create a simple worked example.
+Stage: ${item.stage}
+Subtopic: ${item.subtopic}
+Specific Learning Outcome: "${item.focus}"
+${instr ? 'Instructions: '+instr : ''}
+Rules: ONE simple problem, 3–5 steps max, student-friendly language, max 2 key points.
+Respond ONLY with valid JSON, no markdown:
+{"title":"Short title","problem":"1-2 sentence problem","steps":["Step 1","Step 2","Step 3"],"keyPoints":["Key point"]}`;
+  return parseJSON(await callClaude(prompt, apiKey, 900));
+}
+
+async function generateQuestions(item, slide, apiKey, slideType) {
+  const style    = slideType === 'recall' ? 'basic recall and procedural' : 'application and problem-solving';
+  const numQ     = slide.numQ       || item.numQ;
+  const diff     = slide.difficulty || item.difficulty;
+  const instr    = [item.custom, slide.instructions].filter(Boolean).join('\n');
+  const prompt = `Create ${style} NSW Mathematics questions (NAPLAN-aligned).
+Stage: ${item.stage}, Subtopic: ${item.subtopic}
+Specific focus: "${item.focus}"
+Number of questions: ${numQ}
+Types: ${item.qTypes.join(', ')}
+Difficulty: ${diff}
+${instr ? 'Instructions: '+instr : ''}
+Respond ONLY with valid JSON, no markdown:
+{"questions":[{"number":1,"type":"multiple_choice","question":"Question text","options":["A) ...","B) ...","C) ...","D) ..."],"answer":"A) ..."}]}
+Omit "options" for short_answer, fill_blank, or true_false.`;
+  return parseJSON(await callClaude(prompt, apiKey, 1400));
+}
+
+// ── PPTX builder ──────────────────────────────────────────────────────────────
+async function generatePresentation(item, apiKey) {
+  const slideXmls = [];
+  let lastQuestions = [];
+  const total = item.slides.length;
+
+  for (let i = 0; i < item.slides.length; i++) {
+    const slide   = item.slides[i];
+    const st      = slide.type.toLowerCase();
+    const heading = slide.title || slide.type;
+    const slideNum = i + 1;
+
+    if (st === 'review') {
+      const c = await generateReview(item, slide, apiKey);
+      if (slide.title) c.title = slide.title;
+      slideXmls.push(buildReviewSlide(c, slideNum, total));
+      await sleep(600);
+    } else if (st === 'recall') {
+      const c = await generateQuestions(item, slide, apiKey, 'recall');
+      lastQuestions = c.questions || [];
+      slideXmls.push(buildQuestionSlide(c, heading, slideNum, total));
+      await sleep(600);
+    } else if (st === 'apply') {
+      const c = await generateQuestions(item, slide, apiKey, 'apply');
+      lastQuestions = c.questions || [];
+      slideXmls.push(buildQuestionSlide(c, heading, slideNum, total));
+      await sleep(600);
+    } else if (st === 'answer') {
+      slideXmls.push(buildAnswerSlide(lastQuestions, slideNum, total, heading));
+    }
+  }
+
+  return new Blob([createPptxBytes(slideXmls)], {
+    type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  });
+}
+
+// ── XML helpers ────────────────────────────────────────────────────────────────
+function xe(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+function txRun(text, bold=false, sz=1400, color='1A1A1A') {
+  return `<a:r><a:rPr lang="en-AU" sz="${sz}" b="${bold?1:0}" dirty="0"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:latin typeface="Calibri"/></a:rPr><a:t>${xe(text)}</a:t></a:r>`;
+}
+function txPara(runs, spcAft=80) { return `<a:p><a:pPr spcAft="${spcAft}"/>${runs}</a:p>`; }
+
+function slideChrome(title, topicLabel, slideNum, total) {
+  return `
+  <p:sp><p:nvSpPr><p:cNvPr id="1" name="bg"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="9144000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>
+  <p:sp><p:nvSpPr><p:cNvPr id="2" name="stripe"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="9144000" cy="1143000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="F2F2F2"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>
+  <p:sp><p:nvSpPr><p:cNvPr id="3" name="ttl"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="228600"/><a:ext cx="7000000" cy="685800"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:pPr/>${txRun(title,true,3600,'000000')}</a:p></p:txBody></p:sp>
+  <p:sp><p:nvSpPr><p:cNvPr id="4" name="topic"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="5000000" y="342900"/><a:ext cx="3915800" cy="457200"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:pPr algn="r"/>${txRun(xe(topicLabel).substring(0,55),false,800,'888888')}</a:p></p:txBody></p:sp>
+  <p:sp><p:nvSpPr><p:cNvPr id="5" name="rule"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="1143000"/><a:ext cx="8229600" cy="18000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="E2E5EC"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>
+    <p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>
+  <p:sp><p:nvSpPr><p:cNvPr id="6" name="ftr"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="6500000"/><a:ext cx="8229600" cy="280000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/>
+      <a:p><a:pPr/>${txRun('NSW Mathematics Revision',false,700,'AAAAAA')}${txRun('          '+slideNum+' / '+total,false,700,'AAAAAA')}</a:p>
+    </p:txBody></p:sp>`;
+}
+
+function wrapSlide(spTree) {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<p:cSld><p:spTree>
+<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+${spTree}
+</p:spTree></p:cSld>
+<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
+</p:sld>`;
+}
+
+function buildReviewSlide(c, slideNum, total) {
+  const steps=c.steps||[], kp=c.keyPoints||[];
+  const sz = steps.length > 5 ? 1100 : 1200;
+  let body='';
+  body += txPara(txRun('Problem',true,1200,'404040'),80);
+  body += txPara(txRun(c.problem||'',false,sz,'1A1A1A'),180);
+  body += txPara(txRun('Solution',true,1200,'404040'),80);
+  steps.forEach((s,i) => { body += txPara(txRun(`${i+1}.  ${s}`,false,sz,'1A1A1A'),60); });
+  if (kp.length) {
+    body += txPara(txRun('Key Points',true,1100,'16a34a'),80);
+    kp.forEach(p => { body += txPara(txRun(`•  ${p}`,false,1100,'16a34a'),50); });
+  }
+  return wrapSlide(`${slideChrome('Review',c.title||'Review',slideNum,total)}
+  <p:sp><p:nvSpPr><p:cNvPr id="10" name="body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="1230000"/><a:ext cx="8229600" cy="5100000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="t" wrap="square"/><a:lstStyle/>${body}</p:txBody></p:sp>`);
+}
+
+function buildQuestionSlide(c, heading, slideNum, total) {
+  const qs=c.questions||[], nq=qs.length;
+  const sz = nq>=4?1000:nq===3?1100:1200;
+  let body='';
+  qs.forEach(q => {
+    body += txPara(txRun(`Question ${q.number}`,true,sz,'0f1117'),40);
+    body += txPara(txRun(q.question||'',false,sz,'1A1A1A'),55);
+    (q.options||[]).forEach(o => { body += txPara(txRun(o,false,sz-100,'3d4452'),28); });
+    body += txPara('',70);
+  });
+  return wrapSlide(`${slideChrome(heading,heading+' Questions',slideNum,total)}
+  <p:sp><p:nvSpPr><p:cNvPr id="10" name="body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="1230000"/><a:ext cx="8229600" cy="5100000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="t" wrap="square"/><a:lstStyle/>${body}</p:txBody></p:sp>`);
+}
+
+function buildAnswerSlide(questions, slideNum, total, heading='Answers') {
+  const nq=questions.length, sz=nq>5?1200:nq>3?1400:1600;
+  let body='';
+  questions.forEach(q => { body += txPara(txRun(`Question ${q.number}:  ${q.answer||'—'}`,true,sz,'16a34a'),120); });
+  return wrapSlide(`${slideChrome(heading,heading,slideNum,total)}
+  <p:sp><p:nvSpPr><p:cNvPr id="10" name="body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="457200" y="1230000"/><a:ext cx="8229600" cy="5100000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+    <p:txBody><a:bodyPr anchor="t" wrap="square"/><a:lstStyle/>${body}</p:txBody></p:sp>`);
+}
+
+// ── ZIP / PPTX assembler ──────────────────────────────────────────────────────
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i=0;i<256;i++) { let c=i; for(let j=0;j<8;j++) c=(c&1)?0xedb88320^(c>>>1):c>>>1; t[i]=c; }
+  return t;
+})();
+function crc32(data) {
+  let crc=0xffffffff;
+  for (let i=0;i<data.length;i++) crc=CRC_TABLE[(crc^data[i])&0xff]^(crc>>>8);
+  return (crc^0xffffffff)>>>0;
+}
+
+function createPptxBytes(slideXmls) {
+  const enc=new TextEncoder(), files={};
+  let ctSlides='', presSlideIds='', presSlideRels='';
+  for (let i=0;i<slideXmls.length;i++) {
+    ctSlides    += `<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`;
+    presSlideIds += `<p:sldId id="${256+i}" r:id="rId${i+2}"/>`;
+    presSlideRels+= `<Relationship Id="rId${i+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i+1}.xml"/>`;
+  }
+  files['[Content_Types].xml']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>${ctSlides}</Types>`);
+  files['_rels/.rels']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`);
+  files['ppt/presentation.xml']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldSz cx="9144000" cy="6858000" type="screen4x3"/><p:notesSz cx="6858000" cy="9144000"/><p:sldIdLst>${presSlideIds}</p:sldIdLst><p:defaultTextStyle/></p:presentation>`);
+  files['ppt/_rels/presentation.xml.rels']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>${presSlideRels}</Relationships>`);
+  files['ppt/slideMasters/slideMaster1.xml']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle><a:lstStyle/></p:titleStyle><p:bodyStyle><a:lstStyle/></p:bodyStyle><p:otherStyle><a:lstStyle/></p:otherStyle></p:txStyles></p:sldMaster>`);
+  files['ppt/slideMasters/_rels/slideMaster1.xml.rels']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`);
+  files['ppt/slideLayouts/slideLayout1.xml']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldLayout xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" type="blank"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`);
+  files['ppt/slideLayouts/_rels/slideLayout1.xml.rels']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`);
+  for (let i=0;i<slideXmls.length;i++) {
+    files[`ppt/slides/slide${i+1}.xml`]=enc.encode(slideXmls[i]);
+    files[`ppt/slides/_rels/slide${i+1}.xml.rels`]=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`);
+  }
+  return zipFiles(files);
+}
+
+function zipFiles(files) {
+  const parts=[], central=[];
+  function u16(v,a){a.push(v&0xff,(v>>8)&0xff);}
+  function u32(v,a){a.push(v&0xff,(v>>8)&0xff,(v>>16)&0xff,(v>>24)&0xff);}
+  const enc=new TextEncoder();
+  for (const [name,data] of Object.entries(files)) {
+    const nb=enc.encode(name), off=parts.length, crc=crc32(data), lh=[];
+    u32(0x04034b50,lh);u16(20,lh);u16(0,lh);u16(0,lh);u16(0,lh);u16(0,lh);
+    u32(crc,lh);u32(data.length,lh);u32(data.length,lh);u16(nb.length,lh);u16(0,lh);
+    lh.push(...nb); parts.push(...lh,...data);
+    central.push({nb,off,crc,len:data.length});
+  }
+  const cdOff=parts.length;
+  for (const e of central) {
+    const cd=[];
+    u32(0x02014b50,cd);u16(20,cd);u16(20,cd);u16(0,cd);u16(0,cd);u16(0,cd);u16(0,cd);
+    u32(e.crc,cd);u32(e.len,cd);u32(e.len,cd);u16(e.nb.length,cd);u16(0,cd);u16(0,cd);u16(0,cd);u16(0,cd);u32(0,cd);u32(e.off,cd);
+    cd.push(...e.nb); parts.push(...cd);
+  }
+  const cdSz=parts.length-cdOff, eocd=[];
+  u32(0x06054b50,eocd);u16(0,eocd);u16(0,eocd);u16(central.length,eocd);u16(central.length,eocd);u32(cdSz,eocd);u32(cdOff,eocd);u16(0,eocd);
+  parts.push(...eocd);
+  return new Uint8Array(parts);
+}
+
+// ── Alerts / utils ────────────────────────────────────────────────────────────
+function showAlert(msg, type='info') {
+  const t={info:'alert-info',warn:'alert-warn',ok:'alert-ok',err:'alert-err'};
+  document.getElementById('alert-area').innerHTML=`<div class="alert ${t[type]||'alert-info'}"><span>${msg}</span></div>`;
+}
+function clearAlert() { document.getElementById('alert-area').innerHTML=''; }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+</script>
+</body>
+</html>
